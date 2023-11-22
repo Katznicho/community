@@ -38,6 +38,8 @@ class CommunityController extends Controller
     public function process(Request $request)
     {
         $user = $this->checkIfUserExists($this->phoneNumber);
+        // $has = Hash::make("1234");
+        // die($has);
 
         if (!$user) {
             return $this->writeResponse("Your account does not exist", true);
@@ -99,8 +101,8 @@ class CommunityController extends Controller
                         break;
 
                     case "Balance":
-                        //extract  pin
-                        $pin = substr($this->text, 0, 4);
+                        $pin =  explode("*", $this->text);
+                        $pin = $pin[2];
                         $pinRes = $this->checkPin($pin, $request->phoneNumber);
                         if ($pinRes) {
                             $bal = $this->getAccountBalance($request->phoneNumber);
@@ -110,14 +112,26 @@ class CommunityController extends Controller
                         }
                         break;
                     case "Deposit":
-                        //extract  pin
-                        $amount = $this->text;
-                        return $this->writeResponse("You have deposited $amount", true);
+                        $amount = explode("*", $this->text);
+                        $amount = $amount[2];
+                        $this->deposit($request->phoneNumber, $amount);
+                        return $this->writeResponse("You have deposited UGX $amount on your account", false);
                         break;
                     case "Withdrawal":
                         //extract  pin
-                        $amount = $this->text;
-                        return $this->writeResponse("You have withdrawn $amount", true);
+                        $amount = explode("*", $this->text);
+                        $amount = $amount[2];
+                        //balance
+                        $bal = $this->getAccountBalance($request->phoneNumber);
+                        if ($bal == 0) {
+                            return $this->writeResponse("Insufficient balance", true);
+                        }
+                        if ($bal < $amount) {
+                            return $this->writeResponse("Insufficient balance", true);
+                        }
+                        //ask for pin
+                        $this->withdrawal($request->phoneNumber, $amount);
+                        return $this->writeResponse("You have withdrawn UGX $amount on your account", true);
                         break;
                     case "Suggest Improvements":
                         //extract  pin
@@ -138,7 +152,6 @@ class CommunityController extends Controller
                         }
                         break;
                     case "Reset Pin":
-                        //extract  pin
                         $pin = $this->text;
                         $actualPin =  explode("*", $this->text);
                         $pin = $actualPin[2];

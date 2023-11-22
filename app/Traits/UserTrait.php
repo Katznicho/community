@@ -12,6 +12,7 @@ trait UserTrait
         //check user pin
         $getUser = DB::table('users')->where('phone_number', $phoneNumber)->first();
         $hashedPin = $getUser->pin;
+        $pin = str_replace(" ", "", $pin);
         if (Hash::check($pin, $hashedPin)) {
             return true;
         } else {
@@ -21,8 +22,12 @@ trait UserTrait
 
     public function updatePin(string $pin, string $phoneNumber)
     {
+        //remove any spaces
+        $pin = str_replace(" ", "", $pin);
+        //print_r($pin);
         //update user pin
         $hashedPin = Hash::make($pin);
+        //print_r($hashedPin);
         DB::table('users')->where('phone_number', $phoneNumber)->update(['pin' => $hashedPin]);
         return true;
     }
