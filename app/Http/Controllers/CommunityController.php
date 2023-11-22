@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\MessageTrait;
 use App\Traits\ResponseTrait;
 use App\Traits\SessionTrait;
 use App\Traits\UserTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
+
 class CommunityController extends Controller
 {
-    use ResponseTrait, SessionTrait, UserTrait;
+    use ResponseTrait, SessionTrait, UserTrait, MessageTrait;
 
     private string $phoneNumber;
     private string $sessionId;
