@@ -6,6 +6,7 @@ use App\Traits\ResponseTrait;
 use App\Traits\SessionTrait;
 use App\Traits\UserTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class CommunityController extends Controller
 {
@@ -36,11 +37,16 @@ class CommunityController extends Controller
     //
     public function process(Request $request)
     {
+        $user = $this->checkIfUserExists($this->phoneNumber);
+
+        if (!$user) {
+            return $this->writeResponse("Your account does not exist", true);
+        }
+        $userCommunity = $this->getUserCommunityDetails($this->phoneNumber);
         try {
-            //code...
-            // return $this->writeResponse($request->text ?? "no text", true);
+
             if ($this->text == "") {
-                return $this->welcomeUser($request);
+                return $this->welcomeUser($request, $userCommunity->name);
             } else {
 
                 $userDetails = $this->getLastUserSession($this->phoneNumber);
@@ -61,9 +67,11 @@ class CommunityController extends Controller
                         } elseif ($this->text == "4") {
                             return $this->latestAnnouncements($request);
                         } elseif ($this->text == "5") {
-                            //account
                             return $this->myAccount($request);
-                        } elseif ($this->text == "6") {
+                        } else if ($this->text == "6") {
+                            $this->storeUserSession($request, "Old Pin");
+                            return $this->writeResponse("Enter your pin", false);
+                        } elseif ($this->text == "7") {
                             return $this->writeResponse("Your to be contacted soon", true);
                         } else {
                             return $this->writeResponse("We did not understand your request 00", true);
@@ -93,7 +101,7 @@ class CommunityController extends Controller
                     case "Balance":
                         //extract  pin
                         $pin = substr($this->text, 0, 4);
-                        $pinRes = $this->checkPin($pin);
+                        $pinRes = $this->checkPin($pin, $request->phoneNumber);
                         if ($pinRes) {
                             $bal = $this->getAccountBalance($request->phoneNumber);
                             return $this->writeResponse("Your account balance is $bal", true);
@@ -116,6 +124,31 @@ class CommunityController extends Controller
                         $suggestion = $this->text;
                         return $this->writeResponse("Thank you for your suggestion $suggestion", true);
                         break;
+                    case "Old Pin":
+                        //extract  pin
+                        $pin = $this->text;
+                        $actualPin =  explode("*", $this->text);
+                        $pin = $actualPin[1];
+                        $checkPin = $this->checkPin($pin, $request->phoneNumber);
+                        if ($checkPin) {
+                            $this->storeUserSession($request, "Reset Pin");
+                            return $this->writeResponse("Enter new pin", false);
+                        } else {
+                            return $this->writeResponse("You entered an invalid pin", true);
+                        }
+                        break;
+                    case "Reset Pin":
+                        //extract  pin
+                        $pin = $this->text;
+                        $actualPin =  explode("*", $this->text);
+                        $pin = $actualPin[2];
+                        $checkPin = $this->updatePin($pin, $request->phoneNumber);
+                        if ($checkPin) {
+                            return $this->writeResponse("Pin reset successfully", true);
+                        } else {
+                            return $this->writeResponse("You entered an invalid pin", true);
+                        }
+                        break;
                     default:
                         # code...
                         // break;
@@ -128,15 +161,16 @@ class CommunityController extends Controller
         }
     }
 
-    private function welcomeUser(Request $request)
+    private function welcomeUser(Request $request, string $name)
     {
-        $response  = "Welcome to CommunityHub:\n";
+        $response  = "Welcome to $name:\n";
         $response .= "1. Report an Issue\n";
         $response .= "2. Suggest Improvement\n";
         $response .= "3. Community Events\n";
         $response .= "4. Announcements\n";
         $response .= "5. My Account\n";
-        $response .= "6. Help\n";
+        $response .= "6. Reset Pin\n";
+        $response .= "7. Help\n";
 
         //store user session
         $this->storeUserSession($request, "00");

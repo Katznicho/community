@@ -25,11 +25,7 @@ Route::post("/process", [CommunityController::class, 'process']);
 
 Route::post("test", function (Request $request) {
 
-
-    $lastUserSession = DB::table('ussd_sessions')
-        ->where('phone_number', $request->phoneNumber)
-        ->orderBy('id', 'desc')
-        ->first();
-
-    return $lastUserSession;
+    $getUser = DB::table('users')->where('phone_number', $request->phoneNumber)->first();
+    $getCommunity = DB::table('communities')->where('id', $getUser->community_id)->first();
+    return $getCommunity;
 });
