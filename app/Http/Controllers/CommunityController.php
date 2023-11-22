@@ -115,7 +115,7 @@ class CommunityController extends Controller
                         $amount = explode("*", $this->text);
                         $amount = $amount[2];
                         $this->deposit($request->phoneNumber, $amount);
-                        return $this->writeResponse("You have deposited UGX $amount on your account", false);
+                        return $this->writeResponse("You have deposited UGX $amount on your account", true);
                         break;
                     case "Withdrawal":
                         //extract  pin
@@ -123,19 +123,21 @@ class CommunityController extends Controller
                         $amount = $amount[2];
                         //balance
                         $bal = $this->getAccountBalance($request->phoneNumber);
-                        if ($bal == 0) {
+                        if (intval($bal) == 0) {
                             return $this->writeResponse("Insufficient balance", true);
                         }
-                        if ($bal < $amount) {
+                        if (intval($bal) < intval($amount)) {
                             return $this->writeResponse("Insufficient balance", true);
                         }
                         //ask for pin
-                        $this->withdrawal($request->phoneNumber, $amount);
+                        $this->withdraw($request->phoneNumber, $amount);
                         return $this->writeResponse("You have withdrawn UGX $amount on your account", true);
                         break;
                     case "Suggest Improvements":
                         //extract  pin
-                        $suggestion = $this->text;
+                        $suggestion = explode("*", $this->text);
+                        $suggestion = $suggestion[1];
+                        $checkPin = $this->updateSuggestion($suggestion, $request->phoneNumber);
                         return $this->writeResponse("Thank you for your suggestion $suggestion", true);
                         break;
                     case "Old Pin":

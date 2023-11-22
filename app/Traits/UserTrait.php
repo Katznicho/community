@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 trait UserTrait
 {
@@ -77,6 +78,7 @@ trait UserTrait
             'description' => 'Deposit',
             'community_id' => $getUser->community_id,
             'user_id' => $getUser->id,
+            'reference' => Str::uuid()
         ]);
         //update the community account balance
         DB::table('communities')->where('id', $getUser->community_id)->update(['account_balance' => $getUser->account_balance + $amount]);
@@ -99,6 +101,7 @@ trait UserTrait
             'description' => 'Withdrawal',
             'community_id' => $getUser->community_id,
             'user_id' => $getUser->id,
+            'reference' => Str::uuid()
         ]);
         //update the community account balance
         DB::table('communities')->where('id', $getUser->community_id)->update(['account_balance' => $getUser->account_balance - $amount]);
