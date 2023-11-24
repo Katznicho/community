@@ -40,9 +40,6 @@ class CommunityController extends Controller
     public function process(Request $request)
     {
         $user = $this->checkIfUserExists($this->phoneNumber);
-        // $has = Hash::make("1234");
-        // die($has);
-
         if (!$user) {
             return $this->writeResponse("Your account does not exist", true);
         }

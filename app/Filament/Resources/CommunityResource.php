@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
@@ -83,7 +84,8 @@ class CommunityResource extends Resource
                             ->default(0)
                             ->label('Account Balance')
                             ->maxLength(255),
-                    ]),
+                    ])
+                    ->columns(3),
 
                 //community leader
                 Section::make("Community Leader Information")
